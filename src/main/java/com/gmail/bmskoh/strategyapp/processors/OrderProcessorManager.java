@@ -43,6 +43,7 @@ public class OrderProcessorManager {
     private List<TriggeringRuleProcessor> triggeringProcessor = new LinkedList<>();
     private final BlockingQueue<String> incomingTickQueue = new LinkedBlockingDeque<>();
     private RuleProcessorFactory ruleProcessorFactory;
+    private boolean running = true;
 
     public OrderProcessorManager(TriggeringRuleLoader trailingRuleLoader, RuleProcessorFactory ruleProcessorFactory) {
         this.triggeringRuleLoader = trailingRuleLoader;
@@ -61,12 +62,12 @@ public class OrderProcessorManager {
 
         processingThread = new Thread() {
             public void run() {
-                try {
-                    for (;;) {
+                while (running) {
+                    try {
                         processMarketTicker(incomingTickQueue.take());
+                    } catch (InterruptedException e) {
+                        logger.error("Interrupted while taking tick from queue. Finishing processing ticker.");
                     }
-                } catch (InterruptedException e) {
-                    logger.error("Interrupted while taking tick from queue. Finishing processing ticker.");
                 }
             }
         };
@@ -129,6 +130,7 @@ public class OrderProcessorManager {
     }
 
     public void cleanUp() {
+        this.running = false;
         this.processingThread.interrupt();
     }
 
@@ -144,8 +146,8 @@ public class OrderProcessorManager {
     }
 
     /**
-     * Return a BlockingQueue that contains last processed MarketTicker objects. The
-     * maximum size of the queue is defined in
+     * Return a BlockingQueue that contains recently processed MarketTicker objects.
+     * The maximum size of the queue is defined in
      * OrderProcessorManager.MAX_PROCESSED_TICKER_SIZE
      *
      * @return
