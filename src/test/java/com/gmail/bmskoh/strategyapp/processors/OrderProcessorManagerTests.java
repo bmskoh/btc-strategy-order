@@ -16,14 +16,18 @@ import com.gmail.bmskoh.strategyapp.model.TriggeringRule;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 public class OrderProcessorManagerTests {
+    @Mock
     TriggeringRuleLoader triggeringRuleLoader;
     OrderProcessorManager orderProcessorManager;
 
     @BeforeEach
     void init() {
-        triggeringRuleLoader = mock(TriggeringRuleLoader.class);
         orderProcessorManager = new OrderProcessorManager(triggeringRuleLoader, new RuleProcessorFactory());
     }
 

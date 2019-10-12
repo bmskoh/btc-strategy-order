@@ -4,7 +4,6 @@ import java.net.URI;
 import java.util.List;
 
 import javax.websocket.ClientEndpoint;
-import javax.websocket.ContainerProvider;
 import javax.websocket.OnClose;
 import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
@@ -75,11 +74,10 @@ public class ConnectionClient {
      * Try to connection BTC websocket server. Server's address comes from
      * application.properties
      */
-    public void startConnection() {
+    public void startConnection(WebSocketContainer socketContainer) {
         logger.info("START web socket connection to {}", properties.getEndpointUrl());
 
         try {
-            WebSocketContainer socketContainer = ContainerProvider.getWebSocketContainer();
             socketContainer.connectToServer(this, new URI(properties.getEndpointUrl()));
         } catch (Exception e) {
             logger.error("error creating socket client", e);
@@ -108,7 +106,7 @@ public class ConnectionClient {
 
             logger.info("SUBSCRIPTION REQUEST: {}", requestStr);
         } catch (JsonProcessingException e) {
-            logger.error("Errro on parsing object to JSON string", e);
+            logger.error("Error on parsing object to JSON string", e);
         }
     }
 

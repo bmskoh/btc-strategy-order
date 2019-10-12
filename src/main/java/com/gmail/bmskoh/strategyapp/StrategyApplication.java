@@ -1,5 +1,7 @@
 package com.gmail.bmskoh.strategyapp;
 
+import javax.websocket.ContainerProvider;
+
 import com.gmail.bmskoh.strategyapp.comm.ConnectionClient;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +22,6 @@ public class StrategyApplication implements CommandLineRunner {
 
 	@Override
 	public void run(String... args) {
-		commClient.startConnection();
+		commClient.startConnection(ContainerProvider.getWebSocketContainer());
 	}
 }

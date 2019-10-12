@@ -66,7 +66,7 @@ public class OrderProcessorManager {
                     try {
                         processMarketTicker(incomingTickQueue.take());
                     } catch (InterruptedException e) {
-                        logger.error("Interrupted while taking tick from queue. Finishing processing ticker.");
+                        logger.warn("Interrupted while taking tick from queue. Finishing processing ticker.");
                     }
                 }
             }

@@ -4,6 +4,8 @@ import java.util.Date;
 
 import com.gmail.bmskoh.strategyapp.model.MarketTicker;
 import com.gmail.bmskoh.strategyapp.model.TrailingStopRule;
+import com.gmail.bmskoh.strategyapp.model.TrailingStopRule.directionType;
+import com.gmail.bmskoh.strategyapp.model.TrailingStopRule.pointType;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,9 +42,8 @@ public class TrailingStopRuleProcessor extends TriggeringRuleProcessor {
         final double lastPrice = marketTicker.getLastPrice();
 
         if (this.prevLastPrice >= 0) {
-            if ((this.trailingRule.getTrailingDirection() == TrailingStopRule.directionType.below
-                    && lastPrice <= this.prevLastPrice)
-                    || (this.trailingRule.getTrailingDirection() == TrailingStopRule.directionType.above
+            if ((this.trailingRule.getTrailingDirection() == directionType.below && lastPrice <= this.prevLastPrice)
+                    || (this.trailingRule.getTrailingDirection() == directionType.above
                             && lastPrice >= this.prevLastPrice)) {
                 this.isTrailing = true;
             } else {
@@ -59,9 +60,9 @@ public class TrailingStopRuleProcessor extends TriggeringRuleProcessor {
 
         if (this.isTrailing) {
             double priceDifference = 0;
-            if (this.trailingRule.getTrailingDirection() == TrailingStopRule.directionType.below) {
+            if (this.trailingRule.getTrailingDirection() == directionType.below) {
                 priceDifference = this.stopOrderPrice - lastPrice;
-            } else if (this.trailingRule.getTrailingDirection() == TrailingStopRule.directionType.above) {
+            } else if (this.trailingRule.getTrailingDirection() == directionType.above) {
                 priceDifference = lastPrice - this.stopOrderPrice;
             }
 
@@ -71,7 +72,7 @@ public class TrailingStopRuleProcessor extends TriggeringRuleProcessor {
                         this.trailingRule.getRuleId());
             }
 
-            if (this.trailingRule.getTrailingType() == TrailingStopRule.pointType.point) {
+            if (this.trailingRule.getTrailingType() == pointType.point) {
                 if (priceDifference >= this.trailingRule.getTrailingPoints()) {
                     this.trailingRule.setTriggered(true);
                     this.trailingRule.setTriggeredPrice(lastPrice);
@@ -82,7 +83,7 @@ public class TrailingStopRuleProcessor extends TriggeringRuleProcessor {
                             this.trailingRule.getRuleId(), lastPrice, this.prevLastPrice, this.stopOrderPrice);
                     return true;
                 }
-            } else if (this.trailingRule.getTrailingType() == TrailingStopRule.pointType.percentage) {
+            } else if (this.trailingRule.getTrailingType() == pointType.percentage) {
                 // TODO: Implement percentage logic
             }
         }
