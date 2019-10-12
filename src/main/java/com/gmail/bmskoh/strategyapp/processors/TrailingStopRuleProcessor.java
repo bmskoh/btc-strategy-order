@@ -78,6 +78,8 @@ public class TrailingStopRuleProcessor extends TriggeringRuleProcessor {
                     this.trailingRule.setTriggeredPrice(lastPrice);
                     this.trailingRule.setTriggeredDate(new Date());
 
+                    // TODO: Place order to BTCMarkets. Persist this order as triggered.
+
                     this.logger.info(
                             "Order is triggered. OrderId: {}, Triggered Price: {}, Previous Price: {}, StopOrder Price: {}",
                             this.trailingRule.getRuleId(), lastPrice, this.prevLastPrice, this.stopOrderPrice);
