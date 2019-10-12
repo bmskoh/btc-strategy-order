@@ -3,10 +3,16 @@ package com.gmail.bmskoh.strategyapp.model;
 import java.util.Date;
 import java.util.Objects;
 
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+
 /**
  * Basically TrailingOrder includes triggering rules. And once this order has
  * been triggered, triggeredPrice and triggeredDate are supposed to be set too.
  */
+@Entity
 public class TrailingStopRule extends TriggeringRule {
     /**
      * Trailing point type. For point type, TrailingOrderProcessor will calculate
@@ -24,6 +30,8 @@ public class TrailingStopRule extends TriggeringRule {
         above, below
     }
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private String ruleId;
     private String marketId;
     private boolean triggered;
