@@ -20,8 +20,13 @@ public class StrategyApplication implements CommandLineRunner {
 
 	}
 
+	/**
+	 * As of 12/10/2019, start the app as a command line app.
+	 */
 	@Override
 	public void run(String... args) {
+		// Start the app by starting websocket connection to BTCMarkets websocket
+		// server.
 		commClient.startConnection(ContainerProvider.getWebSocketContainer());
 	}
 }

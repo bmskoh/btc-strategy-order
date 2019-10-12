@@ -13,6 +13,9 @@ import org.springframework.stereotype.Component;
  * This class loads order triggering rules.
  *
  * Rules are hardcoded for testing at the moment.
+ *
+ * These rules are supposed to be loaded from database, or other services.
+ *
  */
 @Component
 public class TriggeringRuleLoader {
