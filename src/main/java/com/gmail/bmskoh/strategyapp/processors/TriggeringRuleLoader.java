@@ -1,12 +1,16 @@
 package com.gmail.bmskoh.strategyapp.processors;
 
-import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
-import com.gmail.bmskoh.strategyapp.model.TriggeringRule;
+import javax.annotation.PostConstruct;
+
 import com.gmail.bmskoh.strategyapp.model.TrailingStopRule;
+import com.gmail.bmskoh.strategyapp.model.TriggeringRule;
+import com.gmail.bmskoh.strategyapp.repositories.TrailingRuleRepository;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -19,14 +23,26 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class TriggeringRuleLoader {
+    @Autowired
+    TrailingRuleRepository trailingRepository;
 
     public List<TriggeringRule> loadTriggeringRules() {
-        List<TriggeringRule> triggeringRules = new LinkedList<>(Arrays.asList(
-                new TrailingStopRule("order1", "ETH-BTC", 0.00001, TrailingStopRule.pointType.point,
-                        TrailingStopRule.directionType.below),
-                new TrailingStopRule("order2", "ETH-BTC", 1, TrailingStopRule.pointType.point,
-                        TrailingStopRule.directionType.above)));
 
-        return triggeringRules;
+        List<TriggeringRule> trailingRules = StreamSupport.stream(trailingRepository.findAll().spliterator(), false)
+                .map(rule -> (TriggeringRule) rule).collect(Collectors.toList());
+
+        return trailingRules;
+    }
+
+    @PostConstruct
+    void insertTestData() {
+
+        TrailingStopRule rule1 = new TrailingStopRule(null, "ETH-BTC", 0.00001, TrailingStopRule.pointType.point,
+                TrailingStopRule.directionType.below);
+        TrailingStopRule rule2 = new TrailingStopRule(null, "ETH-BTC", 1, TrailingStopRule.pointType.point,
+                TrailingStopRule.directionType.above);
+
+        trailingRepository.save(rule1);
+        trailingRepository.save(rule2);
     }
 }
