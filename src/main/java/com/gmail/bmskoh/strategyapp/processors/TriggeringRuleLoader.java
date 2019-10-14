@@ -1,12 +1,12 @@
 package com.gmail.bmskoh.strategyapp.processors;
 
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
 import com.gmail.bmskoh.strategyapp.model.TriggeringRule;
-import com.gmail.bmskoh.strategyapp.model.TrailingStopRule;
+import com.gmail.bmskoh.strategyapp.repositories.TriggeringRuleRepository;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -19,14 +19,12 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class TriggeringRuleLoader {
+    @Autowired
+    TriggeringRuleRepository triggeringRuleRepository;
 
     public List<TriggeringRule> loadTriggeringRules() {
-        List<TriggeringRule> triggeringRules = new LinkedList<>(Arrays.asList(
-                new TrailingStopRule("order1", "ETH-BTC", 0.00001, TrailingStopRule.pointType.point,
-                        TrailingStopRule.directionType.below),
-                new TrailingStopRule("order2", "ETH-BTC", 1, TrailingStopRule.pointType.point,
-                        TrailingStopRule.directionType.above)));
-
+        final List<TriggeringRule> triggeringRules = new LinkedList<TriggeringRule>();
+        triggeringRuleRepository.findAll().forEach(rule -> triggeringRules.add(rule));
         return triggeringRules;
     }
 }
