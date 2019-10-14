@@ -83,8 +83,16 @@ public class TrailingStopRule extends TriggeringRule {
         return this.ruleId;
     }
 
+    public void setRuleId(String ruleId) {
+        this.ruleId = ruleId;
+    }
+
     public String getMarketId() {
         return this.marketId;
+    }
+
+    public void setMarketId(String marketId) {
+        this.marketId = marketId;
     }
 
     public boolean isTriggered() {
@@ -103,12 +111,24 @@ public class TrailingStopRule extends TriggeringRule {
         return this.trailingPoints;
     }
 
+    public void setTrailingPoints(double points) {
+        this.trailingPoints = points;
+    }
+
     public pointType getTrailingType() {
         return this.trailingType;
     }
 
+    public void setTrailingType(pointType pointType) {
+        this.trailingType = pointType;
+    }
+
     public directionType getTrailingDirection() {
         return this.trailingDirection;
+    }
+
+    public void setTrailingDirection(directionType direction) {
+        this.trailingDirection = direction;
     }
 
     public double getTriggeredPrice() {

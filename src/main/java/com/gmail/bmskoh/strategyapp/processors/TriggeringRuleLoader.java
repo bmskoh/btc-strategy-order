@@ -1,14 +1,10 @@
 package com.gmail.bmskoh.strategyapp.processors;
 
+import java.util.LinkedList;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
-import javax.annotation.PostConstruct;
-
-import com.gmail.bmskoh.strategyapp.model.TrailingStopRule;
 import com.gmail.bmskoh.strategyapp.model.TriggeringRule;
-import com.gmail.bmskoh.strategyapp.repositories.TrailingRuleRepository;
+import com.gmail.bmskoh.strategyapp.repositories.TriggeringRuleRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -24,25 +20,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class TriggeringRuleLoader {
     @Autowired
-    TrailingRuleRepository trailingRepository;
+    TriggeringRuleRepository triggeringRuleRepository;
 
     public List<TriggeringRule> loadTriggeringRules() {
-
-        List<TriggeringRule> trailingRules = StreamSupport.stream(trailingRepository.findAll().spliterator(), false)
-                .map(rule -> (TriggeringRule) rule).collect(Collectors.toList());
-
-        return trailingRules;
-    }
-
-    @PostConstruct
-    void insertTestData() {
-
-        TrailingStopRule rule1 = new TrailingStopRule(null, "ETH-BTC", 0.00001, TrailingStopRule.pointType.point,
-                TrailingStopRule.directionType.below);
-        TrailingStopRule rule2 = new TrailingStopRule(null, "ETH-BTC", 1, TrailingStopRule.pointType.point,
-                TrailingStopRule.directionType.above);
-
-        trailingRepository.save(rule1);
-        trailingRepository.save(rule2);
+        final List<TriggeringRule> triggeringRules = new LinkedList<TriggeringRule>();
+        triggeringRuleRepository.findAll().forEach(rule -> triggeringRules.add(rule));
+        return triggeringRules;
     }
 }
