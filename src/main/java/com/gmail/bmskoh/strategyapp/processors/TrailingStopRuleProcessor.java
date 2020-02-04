@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
  * Process trailing order. This order processor decides when to trigger trailing
  * order based on current ticker.
  */
-public class TrailingStopRuleProcessor extends TriggeringRuleProcessor {
+public class TrailingStopRuleProcessor implements ITriggeringRuleProcessor {
     private Logger logger = LoggerFactory.getLogger(TrailingStopRuleProcessor.class);
 
     private TrailingStopRule trailingRule;

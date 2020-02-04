@@ -1,7 +1,5 @@
 package com.gmail.bmskoh.strategyapp.comm;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -11,10 +9,10 @@ import java.util.ArrayList;
 
 import javax.websocket.RemoteEndpoint.Async;
 import javax.websocket.Session;
-import javax.websocket.WebSocketContainer;
 
 import com.gmail.bmskoh.strategyapp.conf.BTCWebsocketProperties;
-import com.gmail.bmskoh.strategyapp.processors.OrderProcessorManager;
+import com.gmail.bmskoh.strategyapp.processors.OrderProcessManager;
+import com.gmail.bmskoh.strategyapp.services.MarketTickerWebSocketService;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -26,24 +24,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 public class ConnectionClientTests {
     @Mock
-    OrderProcessorManager orderProcessorManager;
+    OrderProcessManager orderProcessorManager;
     @Mock
     BTCWebsocketProperties properties;
 
     @InjectMocks
-    ConnectionClient connectionClient;
-
-    @Test
-    @DisplayName("Test if WebSockerContainer's connectToServer is called with correct URI when startConnection is called.")
-    public void testStartConnection() throws Exception {
-        final String uriPath = "fake://path";
-        when(properties.getEndpointUrl()).thenReturn(uriPath);
-        WebSocketContainer container = mock(WebSocketContainer.class);
-
-        connectionClient.startConnection(container);
-
-        verify(container).connectToServer(any(ConnectionClient.class), argThat(uri -> uriPath.equals(uri.toString())));
-    }
+    MarketTickerWebSocketService connectionClient;
 
     @Test
     @DisplayName("Async's sendText should be called with correct json string for subsription")

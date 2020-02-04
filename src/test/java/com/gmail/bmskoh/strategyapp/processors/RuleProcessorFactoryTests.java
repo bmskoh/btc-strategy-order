@@ -21,7 +21,7 @@ public class RuleProcessorFactoryTests {
     @Test
     public void testReturnTrailingProcessor() {
         TriggeringRule triggeringRule = new TrailingStopRule("rule1", "BTC", 5, pointType.point, directionType.above);
-        TriggeringRuleProcessor processor = factory.createTriggeringRuleProcessor(triggeringRule);
+        ITriggeringRuleProcessor processor = factory.createTriggeringRuleProcessor(triggeringRule);
 
         assertThat(processor).isInstanceOf(TrailingStopRuleProcessor.class);
     }

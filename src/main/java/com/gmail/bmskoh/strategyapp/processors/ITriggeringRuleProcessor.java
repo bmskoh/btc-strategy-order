@@ -5,7 +5,7 @@ import com.gmail.bmskoh.strategyapp.model.MarketTicker;
 /**
  * This is a super class of order processors.
  */
-public abstract class TriggeringRuleProcessor {
+public interface ITriggeringRuleProcessor {
     /**
      * Process given ticker string and decide to trigger order or not.
      *

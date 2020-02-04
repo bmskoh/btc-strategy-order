@@ -24,11 +24,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 public class OrderProcessorManagerTests {
     @Mock
     TriggeringRuleLoader triggeringRuleLoader;
-    OrderProcessorManager orderProcessorManager;
+    OrderProcessManager orderProcessorManager;
 
     @BeforeEach
     void init() {
-        orderProcessorManager = new OrderProcessorManager(triggeringRuleLoader, new RuleProcessorFactory());
+        orderProcessorManager = new OrderProcessManager(triggeringRuleLoader, new RuleProcessorFactory());
     }
 
     @AfterEach
@@ -77,7 +77,7 @@ public class OrderProcessorManagerTests {
         when(factory.createTriggeringRuleProcessor(any(TriggeringRule.class))).thenReturn(processor);
 
         // 4. create OrderProcessorManager with prepared mocks.
-        orderProcessorManager = new OrderProcessorManager(triggeringRuleLoader, factory);
+        orderProcessorManager = new OrderProcessManager(triggeringRuleLoader, factory);
 
         orderProcessorManager.init();
 

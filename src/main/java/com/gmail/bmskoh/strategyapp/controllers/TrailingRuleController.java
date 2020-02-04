@@ -17,6 +17,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+/**
+ * Temporary implementation.
+ * TODO: Persistence should be done through IStrategyOrderService. IStrategyOrderService should be capable
+ * of persisting data and update in memory triggering rules at the same time in a thread safe manner.
+ */
 @RestController
 public class TrailingRuleController {
 

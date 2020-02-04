@@ -30,22 +30,22 @@ import org.springframework.stereotype.Component;
  * Order triggering rules are defined in subclasses of
  * {@link com.gmail.bmskoh.strategyapp.model.TriggeringRule ContingentOrder}
  * interface. And subclasses of
- * {@link com.gmail.bmskoh.strategyapp.processors.TriggeringRuleProcessor
+ * {@link com.gmail.bmskoh.strategyapp.processors.ITriggeringRuleProcessor
  * TriggeringRuleProcessor} know how to process triggering rules and current
  * market tickers.
  */
 @Component
-public class OrderProcessorManager {
-    private final Logger logger = LoggerFactory.getLogger(OrderProcessorManager.class);
+public class OrderProcessManager implements IOrderProcessManager {
+    private final Logger logger = LoggerFactory.getLogger(OrderProcessManager.class);
 
     TriggeringRuleLoader triggeringRuleLoader;
     private Thread processingThread;
-    private List<TriggeringRuleProcessor> triggeringProcessor = new LinkedList<>();
+    private List<ITriggeringRuleProcessor> triggeringProcessor = new LinkedList<>();
     private final BlockingQueue<String> incomingTickQueue = new LinkedBlockingDeque<>();
     private RuleProcessorFactory ruleProcessorFactory;
     private boolean running = true;
 
-    public OrderProcessorManager(TriggeringRuleLoader trailingRuleLoader, RuleProcessorFactory ruleProcessorFactory) {
+    public OrderProcessManager(TriggeringRuleLoader trailingRuleLoader, RuleProcessorFactory ruleProcessorFactory) {
         this.triggeringRuleLoader = trailingRuleLoader;
         this.ruleProcessorFactory = ruleProcessorFactory;
     }
@@ -74,13 +74,6 @@ public class OrderProcessorManager {
         processingThread.start();
     }
 
-    /**
-     * Use this method to push current market ticker JSON string that needs to be
-     * processed.
-     *
-     * @param tickerStr Current market ticker string in JSON format.
-     * @return true if successful, false otherwise.
-     */
     public boolean pushMarketTicker(String tickerStr) {
         try {
             this.incomingTickQueue.put(tickerStr);
@@ -125,7 +118,7 @@ public class OrderProcessorManager {
         return mapper.readValue(jsonStr, MarketTicker.class);
     }
 
-    public List<TriggeringRuleProcessor> getOrderProcessors() {
+    public List<ITriggeringRuleProcessor> getOrderProcessors() {
         return this.triggeringProcessor;
     }
 
@@ -136,10 +129,10 @@ public class OrderProcessorManager {
 
     public static int MAX_PROCESSED_TICKER_SIZE = 3;
     private BlockingQueue<MarketTicker> lastProcessedTickers = new ArrayBlockingQueue<>(
-            OrderProcessorManager.MAX_PROCESSED_TICKER_SIZE);
+            OrderProcessManager.MAX_PROCESSED_TICKER_SIZE);
 
     private void putLastProcessedTicker(MarketTicker ticker) {
-        if (this.lastProcessedTickers.size() >= OrderProcessorManager.MAX_PROCESSED_TICKER_SIZE) {
+        if (this.lastProcessedTickers.size() >= OrderProcessManager.MAX_PROCESSED_TICKER_SIZE) {
             this.lastProcessedTickers.remove();
         }
         this.lastProcessedTickers.add(ticker);

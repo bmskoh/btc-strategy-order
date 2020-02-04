@@ -1,9 +1,10 @@
-package com.gmail.bmskoh.strategyapp.comm;
+package com.gmail.bmskoh.strategyapp.services;
 
 import java.net.URI;
 import java.util.List;
 
 import javax.websocket.ClientEndpoint;
+import javax.websocket.ContainerProvider;
 import javax.websocket.OnClose;
 import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
@@ -13,7 +14,7 @@ import javax.websocket.WebSocketContainer;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gmail.bmskoh.strategyapp.conf.BTCWebsocketProperties;
-import com.gmail.bmskoh.strategyapp.processors.OrderProcessorManager;
+import com.gmail.bmskoh.strategyapp.processors.OrderProcessManager;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +28,7 @@ import org.springframework.stereotype.Component;
 @Component
 @ClientEndpoint
 @EnableConfigurationProperties(BTCWebsocketProperties.class)
-public class ConnectionClient {
+public class MarketTickerWebSocketService implements IMarketTickerConnService{
 
     /**
      * BTCRequest class represents the request to be sent to BTC websocket server
@@ -62,10 +63,10 @@ public class ConnectionClient {
         }
     }
 
-    private Logger logger = LoggerFactory.getLogger(ConnectionClient.class);
+    private Logger logger = LoggerFactory.getLogger(MarketTickerWebSocketService.class);
 
     @Autowired
-    private OrderProcessorManager orderProcessorManager;
+    private OrderProcessManager orderProcessorManager;
 
     @Autowired
     private BTCWebsocketProperties properties;
@@ -74,7 +75,8 @@ public class ConnectionClient {
      * Try to connection BTC websocket server. Server's address comes from
      * application.properties
      */
-    public void startConnection(WebSocketContainer socketContainer) {
+    public void startConnService() {
+        WebSocketContainer socketContainer = ContainerProvider.getWebSocketContainer();
         logger.info("START web socket connection to {}", properties.getEndpointUrl());
 
         try {
@@ -94,7 +96,7 @@ public class ConnectionClient {
     public void onOpen(Session session) {
         logger.info("CONNECTED: {}", properties.getEndpointUrl());
 
-        ConnectionClient.BTCRequest request = new ConnectionClient.BTCRequest();
+        MarketTickerWebSocketService.BTCRequest request = new MarketTickerWebSocketService.BTCRequest();
         request.setChannels(properties.getChannelNames());
         request.setMarketIds(properties.getMarketIds());
         request.setMessageType("subscribe");

@@ -1,8 +1,6 @@
 package com.gmail.bmskoh.strategyapp;
 
-import javax.websocket.ContainerProvider;
-
-import com.gmail.bmskoh.strategyapp.comm.ConnectionClient;
+import com.gmail.bmskoh.strategyapp.services.IStrategyOrderService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -13,7 +11,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class StrategyApplication implements CommandLineRunner {
 
 	@Autowired
-	ConnectionClient commClient;
+	IStrategyOrderService strategyOrderService;
 
 	public static void main(String[] args) {
 		SpringApplication.run(StrategyApplication.class, args);
@@ -25,8 +23,7 @@ public class StrategyApplication implements CommandLineRunner {
 	 */
 	@Override
 	public void run(String... args) {
-		// Start the app by starting websocket connection to BTCMarkets websocket
-		// server.
-		commClient.startConnection(ContainerProvider.getWebSocketContainer());
+		// Start the app by calling startService of service object.
+		strategyOrderService.startService();
 	}
 }

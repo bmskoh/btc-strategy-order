@@ -3,9 +3,8 @@ package com.gmail.bmskoh.strategyapp;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 
-import javax.websocket.WebSocketContainer;
-
-import com.gmail.bmskoh.strategyapp.comm.ConnectionClient;
+import com.gmail.bmskoh.strategyapp.services.IMarketTickerConnService;
+import com.gmail.bmskoh.strategyapp.services.IStrategyOrderService;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,7 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 public class StrategyApplicationTests {
     @Mock
-    ConnectionClient connClient;
+    IStrategyOrderService strategyOrderService;
     @InjectMocks
     StrategyApplication strategyApplication;
 
@@ -24,6 +23,6 @@ public class StrategyApplicationTests {
     public void testAppStarts() {
         strategyApplication.run();
 
-        verify(connClient).startConnection(any(WebSocketContainer.class));
+        verify(strategyOrderService).startService();
     }
 }

@@ -18,7 +18,7 @@ public class RuleProcessorFactory {
      * @param triggeringRule
      * @return
      */
-    public TriggeringRuleProcessor createTriggeringRuleProcessor(TriggeringRule triggeringRule) {
+    public ITriggeringRuleProcessor createTriggeringRuleProcessor(TriggeringRule triggeringRule) {
         if (triggeringRule.getRuleType() == TriggeringRuleType.trailingStop) {
             return new TrailingStopRuleProcessor((TrailingStopRule) triggeringRule);
         }
