@@ -7,6 +7,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;
+import javax.validation.constraints.NotNull;
 
 /**
  * Basically TrailingOrder includes triggering rules. And once this order has
@@ -33,12 +34,15 @@ public class TrailingStopRule extends TriggeringRule {
     }
 
     @Column(name = "TRAILING_POINT")
+    @NotNull(message = "Traling points is required.")
     private double trailingPoints;
 
     @Column(name = "TRAILING_TYPE")
+    @NotNull(message = "Trailing type is required.")
     private pointType trailingType;
 
     @Column(name = "TRAILING_DIRECTION")
+    @NotNull(message = "Trailing direction is required.")
     private directionType trailingDirection;
 
     public TrailingStopRule() {
@@ -57,26 +61,6 @@ public class TrailingStopRule extends TriggeringRule {
     @Override
     public TriggeringRule.TriggeringRuleType getRuleType() {
         return TriggeringRuleType.trailingStop;
-    }
-
-    @Override
-    public boolean equals(Object rule) {
-        if (this == rule)
-            return true;
-        if (!(rule instanceof TrailingStopRule))
-            return false;
-        TrailingStopRule trailingOrder = (TrailingStopRule) rule;
-
-        boolean isEqual = Objects.equals(this.ruleId, trailingOrder.ruleId)
-                && Objects.equals(this.marketId, trailingOrder.marketId) && this.triggered == trailingOrder.triggered
-                && this.trailingPoints == trailingOrder.trailingPoints
-                && this.trailingDirection == trailingOrder.trailingDirection;
-
-        if (this.triggered) {
-            isEqual = isEqual && triggeredPrice == trailingOrder.triggeredPrice
-                    && Objects.equals(this.triggeredDate, trailingOrder.triggeredDate);
-        }
-        return isEqual;
     }
 
     public String getRuleId() {
@@ -146,4 +130,39 @@ public class TrailingStopRule extends TriggeringRule {
     public void setTriggeredDate(Date triggeredDate) {
         this.triggeredDate = triggeredDate;
     }
+
+    @Override
+    public boolean equals(Object rule) {
+        if (this == rule)
+            return true;
+        if (!(rule instanceof TrailingStopRule))
+            return false;
+        TrailingStopRule trailingOrder = (TrailingStopRule) rule;
+
+        boolean isEqual = Objects.equals(this.ruleId, trailingOrder.ruleId)
+                && Objects.equals(this.marketId, trailingOrder.marketId) && this.triggered == trailingOrder.triggered
+                && this.trailingPoints == trailingOrder.trailingPoints
+                && this.trailingDirection == trailingOrder.trailingDirection;
+
+        if (this.triggered) {
+            isEqual = isEqual && triggeredPrice == trailingOrder.triggeredPrice
+                    && Objects.equals(this.triggeredDate, trailingOrder.triggeredDate);
+        }
+        return isEqual;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(ruleId, trailingPoints, trailingType, trailingDirection);
+    }
+
+    @Override
+    public String toString() {
+        return "{" +
+            " trailingPoints='" + getTrailingPoints() + "'" +
+            ", trailingType='" + getTrailingType() + "'" +
+            ", trailingDirection='" + getTrailingDirection() + "'" +
+            "}";
+    }
+
 }

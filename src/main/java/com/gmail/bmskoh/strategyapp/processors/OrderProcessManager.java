@@ -35,7 +35,7 @@ import org.springframework.stereotype.Component;
  * market tickers.
  */
 @Component
-public class OrderProcessManager implements IOrderProcessManager {
+public class OrderProcessManager implements IOrderProcessManager, IMarketTickerHandler {
     private final Logger logger = LoggerFactory.getLogger(OrderProcessManager.class);
 
     TriggeringRuleLoader triggeringRuleLoader;
