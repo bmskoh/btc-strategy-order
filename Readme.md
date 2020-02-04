@@ -1,5 +1,9 @@
 # Strategic order for BTCMarkets
 
+**Under refactoring as of 04/02/2020**
+**REST controller will only have access to IStrategyOrderService so retrieving/updating from/to database**
+**and updating triggering rules in memory can be done together in thread safe manner**
+
 `btc-strategy-order` is a `Spring boot` application to provide functionalities of strategic order for BTCMarkets.
 This application consists of a number of components.
 
