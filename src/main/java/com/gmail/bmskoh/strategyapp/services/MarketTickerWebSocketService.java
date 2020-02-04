@@ -14,7 +14,7 @@ import javax.websocket.WebSocketContainer;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gmail.bmskoh.strategyapp.conf.BTCWebsocketProperties;
-import com.gmail.bmskoh.strategyapp.processors.OrderProcessManager;
+import com.gmail.bmskoh.strategyapp.processors.IMarketTickerHandler;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +28,7 @@ import org.springframework.stereotype.Component;
 @Component
 @ClientEndpoint
 @EnableConfigurationProperties(BTCWebsocketProperties.class)
-public class MarketTickerWebSocketService implements IMarketTickerConnService{
+public class MarketTickerWebSocketService implements IMarketTickerConnService {
 
     /**
      * BTCRequest class represents the request to be sent to BTC websocket server
@@ -66,7 +66,7 @@ public class MarketTickerWebSocketService implements IMarketTickerConnService{
     private Logger logger = LoggerFactory.getLogger(MarketTickerWebSocketService.class);
 
     @Autowired
-    private OrderProcessManager orderProcessorManager;
+    private IMarketTickerHandler marketTickerHandler;
 
     @Autowired
     private BTCWebsocketProperties properties;
@@ -122,6 +122,6 @@ public class MarketTickerWebSocketService implements IMarketTickerConnService{
         logger.trace("New message: {}", message);
 
         // Call OrderProcessorManager to process market ticker.
-        this.orderProcessorManager.pushMarketTicker(message);
+        this.marketTickerHandler.pushMarketTicker(message);
     }
 }
