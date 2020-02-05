@@ -13,11 +13,15 @@ import javax.annotation.PostConstruct;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gmail.bmskoh.strategyapp.model.MarketTicker;
+import com.gmail.bmskoh.strategyapp.model.TrailingStopRule;
 import com.gmail.bmskoh.strategyapp.model.TriggeringRule;
+import com.gmail.bmskoh.strategyapp.repositories.TriggeringRuleRepository;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.web.server.ResponseStatusException;
 
 /**
  * OrderProcessorManager manages order triggering rules and process market
@@ -35,8 +39,10 @@ import org.springframework.stereotype.Component;
  * market tickers.
  */
 @Component
-public class OrderProcessManager implements IOrderProcessManager, IMarketTickerHandler {
+public class OrderProcessManager implements ITriggeringRuleManager, IMarketTickerHandler {
     private final Logger logger = LoggerFactory.getLogger(OrderProcessManager.class);
+
+    TriggeringRuleRepository triggeringRuleRepository;
 
     TriggeringRuleLoader triggeringRuleLoader;
     private Thread processingThread;
@@ -45,7 +51,9 @@ public class OrderProcessManager implements IOrderProcessManager, IMarketTickerH
     private RuleProcessorFactory ruleProcessorFactory;
     private boolean running = true;
 
-    public OrderProcessManager(TriggeringRuleLoader trailingRuleLoader, RuleProcessorFactory ruleProcessorFactory) {
+    public OrderProcessManager(TriggeringRuleLoader trailingRuleLoader, RuleProcessorFactory ruleProcessorFactory,
+            TriggeringRuleRepository triggeringRuleRepository) {
+        this.triggeringRuleRepository = triggeringRuleRepository;
         this.triggeringRuleLoader = trailingRuleLoader;
         this.ruleProcessorFactory = ruleProcessorFactory;
     }
@@ -147,5 +155,39 @@ public class OrderProcessManager implements IOrderProcessManager, IMarketTickerH
      */
     public BlockingQueue<MarketTicker> getLastProcessedTickers() {
         return this.lastProcessedTickers;
+    }
+
+    @Override
+    public TrailingStopRule addTrailingRule(TrailingStopRule rule) {
+        return triggeringRuleRepository.save(rule);
+    }
+
+    @Override
+    public List<TrailingStopRule> getAllTrailingRules() {
+        return triggeringRuleLoader.loadTriggeringRules().stream()
+                .map(triggeringRule -> (TrailingStopRule) triggeringRule).collect(Collectors.toList());
+    }
+
+    @Override
+    public TrailingStopRule getTrailingRule(String ruleId) throws TriggeringRuleNotFoundException {
+        return (TrailingStopRule) triggeringRuleRepository.findById(ruleId)
+                .orElseThrow(() -> new TriggeringRuleNotFoundException("Could not find rule: " + ruleId));
+    }
+
+    @Override
+    public void updateTrailingRule(TrailingStopRule newRule) throws TriggeringRuleNotFoundException {
+        triggeringRuleRepository.findById(newRule.getRuleId()).map(rule -> {
+            TrailingStopRule trailingRule = (TrailingStopRule) rule;
+            trailingRule.setMarketId(newRule.getMarketId());
+            trailingRule.setTrailingPoints(newRule.getTrailingPoints());
+            trailingRule.setTrailingType(newRule.getTrailingType());
+            trailingRule.setTrailingDirection(newRule.getTrailingDirection());
+            return triggeringRuleRepository.save(trailingRule);
+        }).orElseThrow(() -> new TriggeringRuleNotFoundException("Could not find rule: " + newRule.getRuleId()));
+    }
+
+    @Override
+    public void deleteTrailingRule(String ruleId) throws TriggeringRuleNotFoundException {
+        triggeringRuleRepository.deleteById(ruleId);
     }
 }

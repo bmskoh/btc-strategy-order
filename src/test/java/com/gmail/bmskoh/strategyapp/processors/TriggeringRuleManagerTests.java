@@ -1,4 +1,4 @@
-package com.gmail.bmskoh.strategyapp.controllers;
+package com.gmail.bmskoh.strategyapp.processors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -16,9 +16,7 @@ import java.util.Optional;
 
 import com.gmail.bmskoh.strategyapp.model.TrailingStopRule;
 import com.gmail.bmskoh.strategyapp.model.TriggeringRule;
-import com.gmail.bmskoh.strategyapp.processors.ITriggeringRuleManager;
 import com.gmail.bmskoh.strategyapp.processors.TriggeringRuleLoader;
-import com.gmail.bmskoh.strategyapp.processors.TriggeringRuleNotFoundException;
 import com.gmail.bmskoh.strategyapp.repositories.TriggeringRuleRepository;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -26,30 +24,34 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.server.ResponseStatusException;
 
-public class TrailingRuleControllerTests {
+public class TriggeringRuleManagerTests {
 
-    ITriggeringRuleManager triggeringRuleManager;
-    TrailingRuleController controller;
+    TriggeringRuleLoader triggeringRuleLoader;
+    TriggeringRuleRepository triggeringRuleRepository;
+    RuleProcessorFactory ruleProcessorFactory;
+    OrderProcessManager ruleManager;
 
     @BeforeEach
     void init() {
-        triggeringRuleManager = mock(ITriggeringRuleManager.class);
+        triggeringRuleLoader = mock(TriggeringRuleLoader.class);
+        triggeringRuleRepository = mock(TriggeringRuleRepository.class);
+        ruleProcessorFactory = mock(RuleProcessorFactory.class);
 
-        controller = new TrailingRuleController(triggeringRuleManager);
+        ruleManager = new OrderProcessManager(triggeringRuleLoader, ruleProcessorFactory, triggeringRuleRepository);
     }
 
     @Test
-    @DisplayName("Test if controller is returning the list of rules as given by triggering rule manager")
+    @DisplayName("Test if controller is returning the list of rules as given by repository")
     public void testAllTrailingRules() {
-        TrailingStopRule[] rules = {
+        TriggeringRule[] rules = {
                 new TrailingStopRule(null, "ETH-BTC", 0.00001, TrailingStopRule.pointType.point,
                         TrailingStopRule.directionType.below),
                 new TrailingStopRule(null, "ETH-BTC", 1, TrailingStopRule.pointType.point,
                         TrailingStopRule.directionType.above) };
 
-        when(triggeringRuleManager.getAllTrailingRules()).thenReturn(Arrays.asList(rules));
+        when(triggeringRuleLoader.loadTriggeringRules()).thenReturn(Arrays.asList(rules));
 
-        List<TrailingStopRule> allRules = controller.allTrailingRules();
+        List<TrailingStopRule> allRules = ruleManager.getAllTrailingRules();
 
         assertThat(allRules).hasSize(2);
         assertThat(allRules.get(0).getTrailingPoints()).isEqualTo(0.00001);
@@ -57,42 +59,37 @@ public class TrailingRuleControllerTests {
     }
 
     @Test
-    @DisplayName("Test if controller is returning the rule object as given by triggering rule manager")
+    @DisplayName("Test if controller is returning the rule object as given by repository")
     public void testOneTrailingRule() throws TriggeringRuleNotFoundException {
-        when(triggeringRuleManager.getTrailingRule(anyString())).thenReturn(new TrailingStopRule(null, "ETH-FAKE",
-                12345, TrailingStopRule.pointType.point, TrailingStopRule.directionType.below));
+        when(triggeringRuleRepository.findById(anyString())).thenReturn(Optional.of(new TrailingStopRule(null,
+                "ETH-FAKE", 12345, TrailingStopRule.pointType.point, TrailingStopRule.directionType.below)));
 
-        TrailingStopRule rule = controller.oneTrailingRule("fakeId");
+        TrailingStopRule rule = ruleManager.getTrailingRule("fakeId");
 
         assertThat(rule.getMarketId()).isEqualTo("ETH-FAKE");
         assertThat(rule.getTrailingPoints()).isEqualTo(12345);
     }
 
     @Test
-    @DisplayName("TriggeringRuleNotFoundException is supposed to be thrown if no rule with the given ruleId could be found")
-    public void testEmptyOneTrailingRule() throws TriggeringRuleNotFoundException {
-        when(triggeringRuleManager.getTrailingRule(anyString())).thenThrow(new TriggeringRuleNotFoundException(""));
+    @DisplayName("ResponseStatuException is supposed to be thrown if no rule with the given ruleId could be found")
+    public void testEmptyOneTrailingRule() {
+        when(triggeringRuleRepository.findById(anyString())).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> controller.oneTrailingRule("fakeId"))
+        assertThatThrownBy(() -> ruleManager.getTrailingRule("fakeId"))
                 .isInstanceOf(TriggeringRuleNotFoundException.class);
     }
 
     @Test
-    @DisplayName("Test if controller uses triggering rule manager's addTrailingRule method to persist the given argument")
+    @DisplayName("Test if controller uses repository's save method to persist the given argument")
     public void testNewTrailingRule() {
-        when(triggeringRuleManager.addTrailingRule(any(TrailingStopRule.class)))
-                .thenAnswer(mock -> mock.getArguments()[0]);
+        when(triggeringRuleRepository.save(any(TrailingStopRule.class))).thenAnswer(mock -> mock.getArguments()[0]);
         TrailingStopRule newRule = new TrailingStopRule(null, "ETH-BTC", 0.00001, TrailingStopRule.pointType.point,
                 TrailingStopRule.directionType.below);
 
-        TrailingStopRule rule = controller.newTrailingRule(newRule);
+        TrailingStopRule rule = ruleManager.addTrailingRule(newRule);
 
-        // Rule ID should have been assigned.
-        assertThat(rule.getRuleId()).isNotNull();
-        // Returned rule should be same as given rule apart from rule id.
-        newRule.setRuleId(rule.getRuleId());
         assertThat(rule).isEqualTo(newRule);
-        verify(triggeringRuleManager).addTrailingRule(eq(newRule));
+        verify(triggeringRuleRepository).save(eq(newRule));
     }
 
     @Test
@@ -101,9 +98,14 @@ public class TrailingRuleControllerTests {
         TrailingStopRule newRule = new TrailingStopRule("fakeId", "NEW-MKT", 12345,
                 TrailingStopRule.pointType.percentage, TrailingStopRule.directionType.above);
 
-        controller.updateTrailingRule(newRule, "fakeId");
+        when(triggeringRuleRepository.findById("fakeId")).thenReturn(Optional.of(new TrailingStopRule("fakeId",
+                "ETH-FAKE", 12345, TrailingStopRule.pointType.point, TrailingStopRule.directionType.below)));
 
-        verify(triggeringRuleManager).updateTrailingRule(argThat(rule -> {
+        when(triggeringRuleRepository.save(any(TrailingStopRule.class))).thenAnswer(mock -> mock.getArguments()[0]);
+
+        ruleManager.updateTrailingRule(newRule);
+
+        verify(triggeringRuleRepository).save(argThat(rule -> {
             TrailingStopRule trailingRule = (TrailingStopRule) rule;
             return trailingRule.getMarketId().equals(newRule.getMarketId())
                     && trailingRule.getTrailingDirection() == newRule.getTrailingDirection()
@@ -114,18 +116,21 @@ public class TrailingRuleControllerTests {
 
     @Test
     @DisplayName("ResponseStatuException is supposed to be thrown if no rule with the given ruleId could be found")
-    public void testEmptyUpdateTrailingRule() throws TriggeringRuleNotFoundException {
-        when(triggeringRuleManager.getTrailingRule(anyString())).thenThrow(new TriggeringRuleNotFoundException(""));
+    public void testEmptyUpdateTrailingRule() {
+        TrailingStopRule newRule = new TrailingStopRule("fakeId", "NEW-MKT", 12345,
+                TrailingStopRule.pointType.percentage, TrailingStopRule.directionType.above);
 
-        assertThatThrownBy(() -> controller.updateTrailingRule(null, "fakeId"))
+        when(triggeringRuleRepository.findById(anyString())).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> ruleManager.updateTrailingRule(newRule))
                 .isInstanceOf(TriggeringRuleNotFoundException.class);
     }
 
     @Test
     public void testDeleteTrailingRule() throws TriggeringRuleNotFoundException {
 
-        controller.deleteRule("fakeId");
+        ruleManager.deleteTrailingRule("fakeId");
 
-        verify(triggeringRuleManager).deleteTrailingRule(eq("fakeId"));
+        verify(triggeringRuleRepository).deleteById(eq("fakeId"));
     }
 }
