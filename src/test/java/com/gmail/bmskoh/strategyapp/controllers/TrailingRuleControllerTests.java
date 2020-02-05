@@ -12,19 +12,14 @@ import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 import com.gmail.bmskoh.strategyapp.model.TrailingStopRule;
-import com.gmail.bmskoh.strategyapp.model.TriggeringRule;
 import com.gmail.bmskoh.strategyapp.processors.ITriggeringRuleManager;
-import com.gmail.bmskoh.strategyapp.processors.TriggeringRuleLoader;
 import com.gmail.bmskoh.strategyapp.processors.TriggeringRuleNotFoundException;
-import com.gmail.bmskoh.strategyapp.repositories.TriggeringRuleRepository;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.web.server.ResponseStatusException;
 
 public class TrailingRuleControllerTests {
 
@@ -87,10 +82,7 @@ public class TrailingRuleControllerTests {
 
         TrailingStopRule rule = controller.newTrailingRule(newRule);
 
-        // Rule ID should have been assigned.
-        assertThat(rule.getRuleId()).isNotNull();
-        // Returned rule should be same as given rule apart from rule id.
-        newRule.setRuleId(rule.getRuleId());
+        // Returned rule should be same as given rule
         assertThat(rule).isEqualTo(newRule);
         verify(triggeringRuleManager).addTrailingRule(eq(newRule));
     }
@@ -110,15 +102,6 @@ public class TrailingRuleControllerTests {
                     && trailingRule.getTrailingType() == newRule.getTrailingType()
                     && trailingRule.getTrailingPoints() == newRule.getTrailingPoints();
         }));
-    }
-
-    @Test
-    @DisplayName("ResponseStatuException is supposed to be thrown if no rule with the given ruleId could be found")
-    public void testEmptyUpdateTrailingRule() throws TriggeringRuleNotFoundException {
-        when(triggeringRuleManager.getTrailingRule(anyString())).thenThrow(new TriggeringRuleNotFoundException(""));
-
-        assertThatThrownBy(() -> controller.updateTrailingRule(null, "fakeId"))
-                .isInstanceOf(TriggeringRuleNotFoundException.class);
     }
 
     @Test

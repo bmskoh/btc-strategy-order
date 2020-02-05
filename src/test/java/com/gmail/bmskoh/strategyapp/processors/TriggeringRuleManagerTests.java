@@ -41,7 +41,7 @@ public class TriggeringRuleManagerTests {
     }
 
     @Test
-    @DisplayName("Test if controller is returning the list of rules as given by repository")
+    @DisplayName("Test if triggering rule manager is returning the list of rules as given by repository")
     public void testAllTrailingRules() {
         TriggeringRule[] rules = {
                 new TrailingStopRule(null, "ETH-BTC", 0.00001, TrailingStopRule.pointType.point,
@@ -59,7 +59,7 @@ public class TriggeringRuleManagerTests {
     }
 
     @Test
-    @DisplayName("Test if controller is returning the rule object as given by repository")
+    @DisplayName("Test if triggering rule manager is returning the rule object as given by repository")
     public void testOneTrailingRule() throws TriggeringRuleNotFoundException {
         when(triggeringRuleRepository.findById(anyString())).thenReturn(Optional.of(new TrailingStopRule(null,
                 "ETH-FAKE", 12345, TrailingStopRule.pointType.point, TrailingStopRule.directionType.below)));
@@ -71,7 +71,7 @@ public class TriggeringRuleManagerTests {
     }
 
     @Test
-    @DisplayName("ResponseStatuException is supposed to be thrown if no rule with the given ruleId could be found")
+    @DisplayName("TriggeringRuleNotFoundException is supposed to be thrown if no rule with the given ruleId could be found for retrieving")
     public void testEmptyOneTrailingRule() {
         when(triggeringRuleRepository.findById(anyString())).thenReturn(Optional.empty());
 
@@ -80,7 +80,7 @@ public class TriggeringRuleManagerTests {
     }
 
     @Test
-    @DisplayName("Test if controller uses repository's save method to persist the given argument")
+    @DisplayName("Test if triggering rule manager uses repository's save method to persist the given argument")
     public void testNewTrailingRule() {
         when(triggeringRuleRepository.save(any(TrailingStopRule.class))).thenAnswer(mock -> mock.getArguments()[0]);
         TrailingStopRule newRule = new TrailingStopRule(null, "ETH-BTC", 0.00001, TrailingStopRule.pointType.point,
@@ -93,7 +93,7 @@ public class TriggeringRuleManagerTests {
     }
 
     @Test
-    @DisplayName("Controller must update existing rule with new rule that's given as arguement, by calling save method")
+    @DisplayName("Triggering rule manager must update existing rule with new rule that's given as arguement, by calling save method")
     public void testUpdateTrailingRule() throws TriggeringRuleNotFoundException {
         TrailingStopRule newRule = new TrailingStopRule("fakeId", "NEW-MKT", 12345,
                 TrailingStopRule.pointType.percentage, TrailingStopRule.directionType.above);
@@ -115,7 +115,7 @@ public class TriggeringRuleManagerTests {
     }
 
     @Test
-    @DisplayName("ResponseStatuException is supposed to be thrown if no rule with the given ruleId could be found")
+    @DisplayName("TriggeringRuleNotFoundException is supposed to be thrown if no rule with the given ruleId could be found for updating")
     public void testEmptyUpdateTrailingRule() {
         TrailingStopRule newRule = new TrailingStopRule("fakeId", "NEW-MKT", 12345,
                 TrailingStopRule.pointType.percentage, TrailingStopRule.directionType.above);

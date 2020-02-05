@@ -3,6 +3,7 @@ package com.gmail.bmskoh.strategyapp.processors;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -19,9 +20,7 @@ import com.gmail.bmskoh.strategyapp.repositories.TriggeringRuleRepository;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-import org.springframework.web.server.ResponseStatusException;
 
 /**
  * OrderProcessorManager manages order triggering rules and process market
@@ -157,8 +156,15 @@ public class OrderProcessManager implements ITriggeringRuleManager, IMarketTicke
         return this.lastProcessedTickers;
     }
 
+    private String generateNewRuleID() {
+        return UUID.randomUUID().toString();
+    }
+
+    // TODO: These CUD actions should be applied to triggeringProcessor list as well.
+
     @Override
     public TrailingStopRule addTrailingRule(TrailingStopRule rule) {
+        rule.setRuleId(this.generateNewRuleID());
         return triggeringRuleRepository.save(rule);
     }
 
