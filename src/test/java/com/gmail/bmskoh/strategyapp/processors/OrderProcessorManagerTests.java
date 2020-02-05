@@ -12,6 +12,7 @@ import java.util.LinkedList;
 import com.gmail.bmskoh.strategyapp.model.MarketTicker;
 import com.gmail.bmskoh.strategyapp.model.TrailingStopRule;
 import com.gmail.bmskoh.strategyapp.model.TriggeringRule;
+import com.gmail.bmskoh.strategyapp.repositories.TriggeringRuleRepository;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,13 +23,20 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 public class OrderProcessorManagerTests {
-    @Mock
+
     TriggeringRuleLoader triggeringRuleLoader;
+    TriggeringRuleRepository triggeringRuleRepository;
+    RuleProcessorFactory ruleProcessorFactory;
     OrderProcessManager orderProcessorManager;
 
     @BeforeEach
     void init() {
-        orderProcessorManager = new OrderProcessManager(triggeringRuleLoader, new RuleProcessorFactory());
+        triggeringRuleLoader = mock(TriggeringRuleLoader.class);
+        triggeringRuleRepository = mock(TriggeringRuleRepository.class);
+        ruleProcessorFactory = mock(RuleProcessorFactory.class);
+
+        orderProcessorManager = new OrderProcessManager(triggeringRuleLoader, ruleProcessorFactory,
+                triggeringRuleRepository);
     }
 
     @AfterEach
@@ -77,7 +85,7 @@ public class OrderProcessorManagerTests {
         when(factory.createTriggeringRuleProcessor(any(TriggeringRule.class))).thenReturn(processor);
 
         // 4. create OrderProcessorManager with prepared mocks.
-        orderProcessorManager = new OrderProcessManager(triggeringRuleLoader, factory);
+        orderProcessorManager = new OrderProcessManager(triggeringRuleLoader, factory, triggeringRuleRepository);
 
         orderProcessorManager.init();
 

@@ -1,6 +1,6 @@
 package com.gmail.bmskoh.strategyapp.services;
 
-import com.gmail.bmskoh.strategyapp.processors.IOrderProcessManager;
+import com.gmail.bmskoh.strategyapp.processors.ITriggeringRuleManager;
 
 import org.springframework.stereotype.Service;
 
@@ -11,10 +11,10 @@ import org.springframework.stereotype.Service;
 @Service
 public class StrategyOrderService implements IStrategyOrderService {
     IMarketTickerConnService marketTickerCommService;
-    IOrderProcessManager orderProcessManager;
+    ITriggeringRuleManager orderProcessManager;
 
     public StrategyOrderService(IMarketTickerConnService marketTickerCommService,
-            IOrderProcessManager orderProcessManager) {
+            ITriggeringRuleManager orderProcessManager) {
         this.marketTickerCommService = marketTickerCommService;
         this.orderProcessManager = orderProcessManager;
     }

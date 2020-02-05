@@ -3,6 +3,7 @@ package com.gmail.bmskoh.strategyapp.processors;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -13,7 +14,9 @@ import javax.annotation.PostConstruct;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gmail.bmskoh.strategyapp.model.MarketTicker;
+import com.gmail.bmskoh.strategyapp.model.TrailingStopRule;
 import com.gmail.bmskoh.strategyapp.model.TriggeringRule;
+import com.gmail.bmskoh.strategyapp.repositories.TriggeringRuleRepository;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,8 +38,10 @@ import org.springframework.stereotype.Component;
  * market tickers.
  */
 @Component
-public class OrderProcessManager implements IOrderProcessManager, IMarketTickerHandler {
+public class OrderProcessManager implements ITriggeringRuleManager, IMarketTickerHandler {
     private final Logger logger = LoggerFactory.getLogger(OrderProcessManager.class);
+
+    TriggeringRuleRepository triggeringRuleRepository;
 
     TriggeringRuleLoader triggeringRuleLoader;
     private Thread processingThread;
@@ -45,7 +50,9 @@ public class OrderProcessManager implements IOrderProcessManager, IMarketTickerH
     private RuleProcessorFactory ruleProcessorFactory;
     private boolean running = true;
 
-    public OrderProcessManager(TriggeringRuleLoader trailingRuleLoader, RuleProcessorFactory ruleProcessorFactory) {
+    public OrderProcessManager(TriggeringRuleLoader trailingRuleLoader, RuleProcessorFactory ruleProcessorFactory,
+            TriggeringRuleRepository triggeringRuleRepository) {
+        this.triggeringRuleRepository = triggeringRuleRepository;
         this.triggeringRuleLoader = trailingRuleLoader;
         this.ruleProcessorFactory = ruleProcessorFactory;
     }
@@ -147,5 +154,46 @@ public class OrderProcessManager implements IOrderProcessManager, IMarketTickerH
      */
     public BlockingQueue<MarketTicker> getLastProcessedTickers() {
         return this.lastProcessedTickers;
+    }
+
+    private String generateNewRuleID() {
+        return UUID.randomUUID().toString();
+    }
+
+    // TODO: These CUD actions should be applied to triggeringProcessor list as well.
+
+    @Override
+    public TrailingStopRule addTrailingRule(TrailingStopRule rule) {
+        rule.setRuleId(this.generateNewRuleID());
+        return triggeringRuleRepository.save(rule);
+    }
+
+    @Override
+    public List<TrailingStopRule> getAllTrailingRules() {
+        return triggeringRuleLoader.loadTriggeringRules().stream()
+                .map(triggeringRule -> (TrailingStopRule) triggeringRule).collect(Collectors.toList());
+    }
+
+    @Override
+    public TrailingStopRule getTrailingRule(String ruleId) throws TriggeringRuleNotFoundException {
+        return (TrailingStopRule) triggeringRuleRepository.findById(ruleId)
+                .orElseThrow(() -> new TriggeringRuleNotFoundException("Could not find rule: " + ruleId));
+    }
+
+    @Override
+    public void updateTrailingRule(TrailingStopRule newRule) throws TriggeringRuleNotFoundException {
+        triggeringRuleRepository.findById(newRule.getRuleId()).map(rule -> {
+            TrailingStopRule trailingRule = (TrailingStopRule) rule;
+            trailingRule.setMarketId(newRule.getMarketId());
+            trailingRule.setTrailingPoints(newRule.getTrailingPoints());
+            trailingRule.setTrailingType(newRule.getTrailingType());
+            trailingRule.setTrailingDirection(newRule.getTrailingDirection());
+            return triggeringRuleRepository.save(trailingRule);
+        }).orElseThrow(() -> new TriggeringRuleNotFoundException("Could not find rule: " + newRule.getRuleId()));
+    }
+
+    @Override
+    public void deleteTrailingRule(String ruleId) throws TriggeringRuleNotFoundException {
+        triggeringRuleRepository.deleteById(ruleId);
     }
 }
