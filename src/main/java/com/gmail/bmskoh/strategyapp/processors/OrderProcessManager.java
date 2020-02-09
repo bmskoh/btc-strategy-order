@@ -16,7 +16,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gmail.bmskoh.strategyapp.model.MarketTicker;
 import com.gmail.bmskoh.strategyapp.model.TrailingStopRule;
 import com.gmail.bmskoh.strategyapp.model.TriggeringRule;
-import com.gmail.bmskoh.strategyapp.repositories.TriggeringRuleRepository;
+import com.gmail.bmskoh.strategyapp.repositories.ITriggeringRuleRepository;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,17 +41,18 @@ import org.springframework.stereotype.Component;
 public class OrderProcessManager implements ITriggeringRuleManager, IMarketTickerHandler {
     private final Logger logger = LoggerFactory.getLogger(OrderProcessManager.class);
 
-    TriggeringRuleRepository triggeringRuleRepository;
+    private ITriggeringRuleRepository triggeringRuleRepository;
+    private ITriggeringRuleLoader triggeringRuleLoader;
 
-    TriggeringRuleLoader triggeringRuleLoader;
     private Thread processingThread;
     private List<ITriggeringRuleProcessor> triggeringProcessor = new LinkedList<>();
     private final BlockingQueue<String> incomingTickQueue = new LinkedBlockingDeque<>();
+
     private RuleProcessorFactory ruleProcessorFactory;
     private boolean running = true;
 
     public OrderProcessManager(TriggeringRuleLoader trailingRuleLoader, RuleProcessorFactory ruleProcessorFactory,
-            TriggeringRuleRepository triggeringRuleRepository) {
+            ITriggeringRuleRepository triggeringRuleRepository) {
         this.triggeringRuleRepository = triggeringRuleRepository;
         this.triggeringRuleLoader = trailingRuleLoader;
         this.ruleProcessorFactory = ruleProcessorFactory;
@@ -67,6 +68,7 @@ public class OrderProcessManager implements ITriggeringRuleManager, IMarketTicke
         this.triggeringProcessor.addAll(trailingOrderRules.stream()
                 .map(rule -> ruleProcessorFactory.createTriggeringRuleProcessor(rule)).collect(Collectors.toList()));
 
+        // Start a thread to process market ticker strings.
         processingThread = new Thread() {
             public void run() {
                 while (running) {
@@ -160,7 +162,8 @@ public class OrderProcessManager implements ITriggeringRuleManager, IMarketTicke
         return UUID.randomUUID().toString();
     }
 
-    // TODO: These CUD actions should be applied to triggeringProcessor list as well.
+    // TODO: Temporary CRUD which needs proper implementation to consider both of TrailingStopRule and StopLossRule.
+    // These CUD actions should be applied to triggeringProcessor list as well.
 
     @Override
     public TrailingStopRule addTrailingRule(TrailingStopRule rule) {
@@ -170,7 +173,9 @@ public class OrderProcessManager implements ITriggeringRuleManager, IMarketTicke
 
     @Override
     public List<TrailingStopRule> getAllTrailingRules() {
-        return triggeringRuleLoader.loadTriggeringRules().stream()
+        final List<TriggeringRule> triggeringRules = new LinkedList<TriggeringRule>();
+        triggeringRuleRepository.findAll().forEach(rule -> triggeringRules.add(rule));
+        return triggeringRuleLoader.loadTriggeringRules().stream().filter(rule -> (rule instanceof TrailingStopRule))
                 .map(triggeringRule -> (TrailingStopRule) triggeringRule).collect(Collectors.toList());
     }
 

@@ -6,6 +6,7 @@ import static org.mockito.Mockito.verify;
 import com.gmail.bmskoh.strategyapp.services.IMarketTickerConnService;
 import com.gmail.bmskoh.strategyapp.services.IStrategyOrderService;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -20,6 +21,7 @@ public class StrategyApplicationTests {
     StrategyApplication strategyApplication;
 
     @Test
+    @DisplayName("App should start by calling startService of IStrategyOrderService")
     public void testAppStarts() {
         strategyApplication.run();
 

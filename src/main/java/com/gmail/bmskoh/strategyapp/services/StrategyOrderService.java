@@ -1,25 +1,27 @@
 package com.gmail.bmskoh.strategyapp.services;
 
+import javax.websocket.ContainerProvider;
+
 import com.gmail.bmskoh.strategyapp.processors.ITriggeringRuleManager;
 
 import org.springframework.stereotype.Service;
 
 /**
  * Simple implementation of IStrategyOrderService. This just starts
- * IMarketTickerCommService.
+ * IMarketTickerConnService.
  */
 @Service
 public class StrategyOrderService implements IStrategyOrderService {
-    IMarketTickerConnService marketTickerCommService;
+    IMarketTickerConnService marketTickerConnService;
     ITriggeringRuleManager orderProcessManager;
 
     public StrategyOrderService(IMarketTickerConnService marketTickerCommService,
             ITriggeringRuleManager orderProcessManager) {
-        this.marketTickerCommService = marketTickerCommService;
+        this.marketTickerConnService = marketTickerCommService;
         this.orderProcessManager = orderProcessManager;
     }
 
     public void startService() {
-        this.marketTickerCommService.startConnService();
+        this.marketTickerConnService.startConnService(ContainerProvider.getWebSocketContainer());
     }
 }

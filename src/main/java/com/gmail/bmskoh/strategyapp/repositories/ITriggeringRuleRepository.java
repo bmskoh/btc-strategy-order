@@ -4,6 +4,6 @@ import com.gmail.bmskoh.strategyapp.model.TriggeringRule;
 
 import org.springframework.data.repository.CrudRepository;
 
-public interface TriggeringRuleRepository extends CrudRepository<TriggeringRule, String> {
+public interface ITriggeringRuleRepository extends CrudRepository<TriggeringRule, String> {
 
 }

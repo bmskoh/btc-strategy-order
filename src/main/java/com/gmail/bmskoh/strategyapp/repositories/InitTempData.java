@@ -1,5 +1,7 @@
 package com.gmail.bmskoh.strategyapp.repositories;
 
+import java.util.UUID;
+
 import javax.annotation.PostConstruct;
 
 import com.gmail.bmskoh.strategyapp.model.TrailingStopRule;
@@ -15,15 +17,15 @@ import org.springframework.stereotype.Component;
 @Profile("dev")
 public class InitTempData {
     @Autowired
-    TriggeringRuleRepository triggeringRuleRepository;
+    ITriggeringRuleRepository triggeringRuleRepository;
 
     // This method is going to add fake TrailingStopRule data
     @PostConstruct
     void insertTestData() {
 
-        TrailingStopRule rule1 = new TrailingStopRule(null, "ETH-BTC", 0.00001, TrailingStopRule.pointType.point,
+        TrailingStopRule rule1 = new TrailingStopRule(UUID.randomUUID().toString(), "ETH-BTC", 0.00001, TrailingStopRule.pointType.point,
                 TrailingStopRule.directionType.below);
-        TrailingStopRule rule2 = new TrailingStopRule(null, "ETH-BTC", 1, TrailingStopRule.pointType.point,
+        TrailingStopRule rule2 = new TrailingStopRule(UUID.randomUUID().toString(), "ETH-BTC", 1, TrailingStopRule.pointType.point,
                 TrailingStopRule.directionType.above);
 
         triggeringRuleRepository.save(rule1);

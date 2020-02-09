@@ -17,27 +17,26 @@ import java.util.Optional;
 import com.gmail.bmskoh.strategyapp.model.TrailingStopRule;
 import com.gmail.bmskoh.strategyapp.model.TriggeringRule;
 import com.gmail.bmskoh.strategyapp.processors.TriggeringRuleLoader;
-import com.gmail.bmskoh.strategyapp.repositories.TriggeringRuleRepository;
+import com.gmail.bmskoh.strategyapp.repositories.ITriggeringRuleRepository;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.web.server.ResponseStatusException;
 
 public class TriggeringRuleManagerTests {
 
-    TriggeringRuleLoader triggeringRuleLoader;
-    TriggeringRuleRepository triggeringRuleRepository;
-    RuleProcessorFactory ruleProcessorFactory;
-    OrderProcessManager ruleManager;
+    private TriggeringRuleLoader triggeringRuleLoader;
+    private ITriggeringRuleRepository triggeringRuleRepository;
+    private RuleProcessorFactory ruleProcessorFactory;
+    private OrderProcessManager ruleManager;
 
     @BeforeEach
     void init() {
-        triggeringRuleLoader = mock(TriggeringRuleLoader.class);
-        triggeringRuleRepository = mock(TriggeringRuleRepository.class);
-        ruleProcessorFactory = mock(RuleProcessorFactory.class);
+        this.triggeringRuleLoader = mock(TriggeringRuleLoader.class);
+        this.triggeringRuleRepository = mock(ITriggeringRuleRepository.class);
+        this.ruleProcessorFactory = mock(RuleProcessorFactory.class);
 
-        ruleManager = new OrderProcessManager(triggeringRuleLoader, ruleProcessorFactory, triggeringRuleRepository);
+        ruleManager = new OrderProcessManager(this.triggeringRuleLoader, this.ruleProcessorFactory, this.triggeringRuleRepository);
     }
 
     @Test
@@ -49,7 +48,7 @@ public class TriggeringRuleManagerTests {
                 new TrailingStopRule(null, "ETH-BTC", 1, TrailingStopRule.pointType.point,
                         TrailingStopRule.directionType.above) };
 
-        when(triggeringRuleLoader.loadTriggeringRules()).thenReturn(Arrays.asList(rules));
+        when(this.triggeringRuleLoader.loadTriggeringRules()).thenReturn(Arrays.asList(rules));
 
         List<TrailingStopRule> allRules = ruleManager.getAllTrailingRules();
 
@@ -61,7 +60,7 @@ public class TriggeringRuleManagerTests {
     @Test
     @DisplayName("Test if triggering rule manager is returning the rule object as given by repository")
     public void testOneTrailingRule() throws TriggeringRuleNotFoundException {
-        when(triggeringRuleRepository.findById(anyString())).thenReturn(Optional.of(new TrailingStopRule(null,
+        when(this.triggeringRuleRepository.findById(anyString())).thenReturn(Optional.of(new TrailingStopRule(null,
                 "ETH-FAKE", 12345, TrailingStopRule.pointType.point, TrailingStopRule.directionType.below)));
 
         TrailingStopRule rule = ruleManager.getTrailingRule("fakeId");
@@ -73,7 +72,7 @@ public class TriggeringRuleManagerTests {
     @Test
     @DisplayName("TriggeringRuleNotFoundException is supposed to be thrown if no rule with the given ruleId could be found for retrieving")
     public void testEmptyOneTrailingRule() {
-        when(triggeringRuleRepository.findById(anyString())).thenReturn(Optional.empty());
+        when(this.triggeringRuleRepository.findById(anyString())).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> ruleManager.getTrailingRule("fakeId"))
                 .isInstanceOf(TriggeringRuleNotFoundException.class);
@@ -82,14 +81,14 @@ public class TriggeringRuleManagerTests {
     @Test
     @DisplayName("Test if triggering rule manager uses repository's save method to persist the given argument")
     public void testNewTrailingRule() {
-        when(triggeringRuleRepository.save(any(TrailingStopRule.class))).thenAnswer(mock -> mock.getArguments()[0]);
+        when(this.triggeringRuleRepository.save(any(TrailingStopRule.class))).thenAnswer(mock -> mock.getArguments()[0]);
         TrailingStopRule newRule = new TrailingStopRule(null, "ETH-BTC", 0.00001, TrailingStopRule.pointType.point,
                 TrailingStopRule.directionType.below);
 
         TrailingStopRule rule = ruleManager.addTrailingRule(newRule);
 
         assertThat(rule).isEqualTo(newRule);
-        verify(triggeringRuleRepository).save(eq(newRule));
+        verify(this.triggeringRuleRepository).save(eq(newRule));
     }
 
     @Test
@@ -98,14 +97,14 @@ public class TriggeringRuleManagerTests {
         TrailingStopRule newRule = new TrailingStopRule("fakeId", "NEW-MKT", 12345,
                 TrailingStopRule.pointType.percentage, TrailingStopRule.directionType.above);
 
-        when(triggeringRuleRepository.findById("fakeId")).thenReturn(Optional.of(new TrailingStopRule("fakeId",
+        when(this.triggeringRuleRepository.findById("fakeId")).thenReturn(Optional.of(new TrailingStopRule("fakeId",
                 "ETH-FAKE", 12345, TrailingStopRule.pointType.point, TrailingStopRule.directionType.below)));
 
-        when(triggeringRuleRepository.save(any(TrailingStopRule.class))).thenAnswer(mock -> mock.getArguments()[0]);
+        when(this.triggeringRuleRepository.save(any(TrailingStopRule.class))).thenAnswer(mock -> mock.getArguments()[0]);
 
         ruleManager.updateTrailingRule(newRule);
 
-        verify(triggeringRuleRepository).save(argThat(rule -> {
+        verify(this.triggeringRuleRepository).save(argThat(rule -> {
             TrailingStopRule trailingRule = (TrailingStopRule) rule;
             return trailingRule.getMarketId().equals(newRule.getMarketId())
                     && trailingRule.getTrailingDirection() == newRule.getTrailingDirection()
@@ -120,7 +119,7 @@ public class TriggeringRuleManagerTests {
         TrailingStopRule newRule = new TrailingStopRule("fakeId", "NEW-MKT", 12345,
                 TrailingStopRule.pointType.percentage, TrailingStopRule.directionType.above);
 
-        when(triggeringRuleRepository.findById(anyString())).thenReturn(Optional.empty());
+        when(this.triggeringRuleRepository.findById(anyString())).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> ruleManager.updateTrailingRule(newRule))
                 .isInstanceOf(TriggeringRuleNotFoundException.class);
@@ -131,6 +130,6 @@ public class TriggeringRuleManagerTests {
 
         ruleManager.deleteTrailingRule("fakeId");
 
-        verify(triggeringRuleRepository).deleteById(eq("fakeId"));
+        verify(this.triggeringRuleRepository).deleteById(eq("fakeId"));
     }
 }

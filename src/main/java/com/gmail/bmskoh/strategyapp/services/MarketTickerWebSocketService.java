@@ -4,7 +4,6 @@ import java.net.URI;
 import java.util.List;
 
 import javax.websocket.ClientEndpoint;
-import javax.websocket.ContainerProvider;
 import javax.websocket.OnClose;
 import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
@@ -75,8 +74,7 @@ public class MarketTickerWebSocketService implements IMarketTickerConnService {
      * Try to connection BTC websocket server. Server's address comes from
      * application.properties
      */
-    public void startConnService() {
-        WebSocketContainer socketContainer = ContainerProvider.getWebSocketContainer();
+    public void startConnService(WebSocketContainer socketContainer) {
         logger.info("START web socket connection to {}", properties.getEndpointUrl());
 
         try {
