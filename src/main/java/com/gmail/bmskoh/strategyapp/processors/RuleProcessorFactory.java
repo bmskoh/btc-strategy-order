@@ -8,16 +8,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+/**
+ * An implementation of IRuleProcessorFactory.
+ */
 @Component
-public class RuleProcessorFactory {
+public class RuleProcessorFactory implements IRuleProcessorFactory {
 
-    /**
-     * Create and return appropriate TriggeringRuleProcessor according to given
-     * TriggeringRule' type
-     *
-     * @param triggeringRule
-     * @return
-     */
     public ITriggeringRuleProcessor createTriggeringRuleProcessor(TriggeringRule triggeringRule) {
         if (triggeringRule.getRuleType() == TriggeringRuleType.trailingStop) {
             return new TrailingStopRuleProcessor((TrailingStopRule) triggeringRule);

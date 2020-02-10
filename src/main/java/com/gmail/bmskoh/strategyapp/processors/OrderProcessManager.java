@@ -8,6 +8,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import javax.annotation.PostConstruct;
 
@@ -42,19 +43,17 @@ public class OrderProcessManager implements ITriggeringRuleManager, IMarketTicke
     private final Logger logger = LoggerFactory.getLogger(OrderProcessManager.class);
 
     private ITriggeringRuleRepository triggeringRuleRepository;
-    private ITriggeringRuleLoader triggeringRuleLoader;
 
     private Thread processingThread;
     private List<ITriggeringRuleProcessor> triggeringProcessor = new LinkedList<>();
     private final BlockingQueue<String> incomingTickQueue = new LinkedBlockingDeque<>();
 
-    private RuleProcessorFactory ruleProcessorFactory;
+    private IRuleProcessorFactory ruleProcessorFactory;
     private boolean running = true;
 
-    public OrderProcessManager(TriggeringRuleLoader trailingRuleLoader, RuleProcessorFactory ruleProcessorFactory,
+    public OrderProcessManager(IRuleProcessorFactory ruleProcessorFactory,
             ITriggeringRuleRepository triggeringRuleRepository) {
         this.triggeringRuleRepository = triggeringRuleRepository;
-        this.triggeringRuleLoader = trailingRuleLoader;
         this.ruleProcessorFactory = ruleProcessorFactory;
     }
 
@@ -63,7 +62,7 @@ public class OrderProcessManager implements ITriggeringRuleManager, IMarketTicke
         this.logger.info("OrderProcessorManager initiatalized.");
 
         // Load trailing rules
-        List<TriggeringRule> trailingOrderRules = this.triggeringRuleLoader.loadTriggeringRules();
+        List<TriggeringRule> trailingOrderRules = this.getAllTriggeringRules();
         // Create order processor for each trailing rule
         this.triggeringProcessor.addAll(trailingOrderRules.stream()
                 .map(rule -> ruleProcessorFactory.createTriggeringRuleProcessor(rule)).collect(Collectors.toList()));
@@ -162,8 +161,17 @@ public class OrderProcessManager implements ITriggeringRuleManager, IMarketTicke
         return UUID.randomUUID().toString();
     }
 
-    // TODO: Temporary CRUD which needs proper implementation to consider both of TrailingStopRule and StopLossRule.
+    // TODO: Temporary CRUD which needs proper implementation to consider both of
+    // TrailingStopRule and StopLossRule.
     // These CUD actions should be applied to triggeringProcessor list as well.
+
+    @Override
+    public List<TriggeringRule> getAllTriggeringRules() {
+        // Just return the list of trailing rules. Will have to change once stop order
+        // is implemented.
+        return this.getAllTrailingRules().stream().map(trailingRule -> (TriggeringRule) trailingRule)
+                .collect(Collectors.toList());
+    }
 
     @Override
     public TrailingStopRule addTrailingRule(TrailingStopRule rule) {
@@ -173,9 +181,8 @@ public class OrderProcessManager implements ITriggeringRuleManager, IMarketTicke
 
     @Override
     public List<TrailingStopRule> getAllTrailingRules() {
-        final List<TriggeringRule> triggeringRules = new LinkedList<TriggeringRule>();
-        triggeringRuleRepository.findAll().forEach(rule -> triggeringRules.add(rule));
-        return triggeringRuleLoader.loadTriggeringRules().stream().filter(rule -> (rule instanceof TrailingStopRule))
+        return StreamSupport.stream(triggeringRuleRepository.findAll().spliterator(), false)
+                .filter(rule -> (rule instanceof TrailingStopRule))
                 .map(triggeringRule -> (TrailingStopRule) triggeringRule).collect(Collectors.toList());
     }
 
@@ -199,6 +206,9 @@ public class OrderProcessManager implements ITriggeringRuleManager, IMarketTicke
 
     @Override
     public void deleteTrailingRule(String ruleId) throws TriggeringRuleNotFoundException {
-        triggeringRuleRepository.deleteById(ruleId);
+        TrailingStopRule rule = this.getTrailingRule(ruleId);
+        if (rule != null) {
+            triggeringRuleRepository.deleteById(ruleId);
+        }
     }
 }

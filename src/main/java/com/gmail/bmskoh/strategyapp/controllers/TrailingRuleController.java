@@ -1,17 +1,21 @@
 package com.gmail.bmskoh.strategyapp.controllers;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.gmail.bmskoh.strategyapp.model.TrailingStopRule;
 import com.gmail.bmskoh.strategyapp.processors.ITriggeringRuleManager;
 import com.gmail.bmskoh.strategyapp.processors.TriggeringRuleNotFoundException;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -19,7 +23,6 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 public class TrailingRuleController {
-    // TODO: Add exception handlings. Return proper response code accordingly.
 
     ITriggeringRuleManager triggeringRuleManager;
 
@@ -52,5 +55,13 @@ public class TrailingRuleController {
     @DeleteMapping("/trailingrules/{ruleId}")
     public void deleteRule(@PathVariable final String ruleId) throws TriggeringRuleNotFoundException {
         this.triggeringRuleManager.deleteTrailingRule(ruleId);
+    }
+
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ExceptionHandler(TriggeringRuleNotFoundException.class)
+    public List<String> handleTriggeringRuleNotFoundException(TriggeringRuleNotFoundException ex) {
+        List<String> error = new ArrayList<>();
+        error.add(ex.getMessage());
+        return error;
     }
 }

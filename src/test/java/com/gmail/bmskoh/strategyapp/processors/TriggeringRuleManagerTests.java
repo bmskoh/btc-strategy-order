@@ -16,39 +16,37 @@ import java.util.Optional;
 
 import com.gmail.bmskoh.strategyapp.model.TrailingStopRule;
 import com.gmail.bmskoh.strategyapp.model.TriggeringRule;
-import com.gmail.bmskoh.strategyapp.processors.TriggeringRuleLoader;
 import com.gmail.bmskoh.strategyapp.repositories.ITriggeringRuleRepository;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 public class TriggeringRuleManagerTests {
 
-    private TriggeringRuleLoader triggeringRuleLoader;
     private ITriggeringRuleRepository triggeringRuleRepository;
     private RuleProcessorFactory ruleProcessorFactory;
     private OrderProcessManager ruleManager;
 
     @BeforeEach
     void init() {
-        this.triggeringRuleLoader = mock(TriggeringRuleLoader.class);
         this.triggeringRuleRepository = mock(ITriggeringRuleRepository.class);
         this.ruleProcessorFactory = mock(RuleProcessorFactory.class);
 
-        ruleManager = new OrderProcessManager(this.triggeringRuleLoader, this.ruleProcessorFactory, this.triggeringRuleRepository);
+        ruleManager = new OrderProcessManager(this.ruleProcessorFactory, this.triggeringRuleRepository);
     }
 
     @Test
     @DisplayName("Test if triggering rule manager is returning the list of rules as given by repository")
     public void testAllTrailingRules() {
-        TriggeringRule[] rules = {
+        TrailingStopRule[] rules = {
                 new TrailingStopRule(null, "ETH-BTC", 0.00001, TrailingStopRule.pointType.point,
                         TrailingStopRule.directionType.below),
                 new TrailingStopRule(null, "ETH-BTC", 1, TrailingStopRule.pointType.point,
                         TrailingStopRule.directionType.above) };
 
-        when(this.triggeringRuleLoader.loadTriggeringRules()).thenReturn(Arrays.asList(rules));
+        when(this.ruleManager.getAllTrailingRules()).thenReturn(Arrays.asList(rules));
 
         List<TrailingStopRule> allRules = ruleManager.getAllTrailingRules();
 
@@ -81,7 +79,8 @@ public class TriggeringRuleManagerTests {
     @Test
     @DisplayName("Test if triggering rule manager uses repository's save method to persist the given argument")
     public void testNewTrailingRule() {
-        when(this.triggeringRuleRepository.save(any(TrailingStopRule.class))).thenAnswer(mock -> mock.getArguments()[0]);
+        when(this.triggeringRuleRepository.save(any(TrailingStopRule.class)))
+                .thenAnswer(mock -> mock.getArguments()[0]);
         TrailingStopRule newRule = new TrailingStopRule(null, "ETH-BTC", 0.00001, TrailingStopRule.pointType.point,
                 TrailingStopRule.directionType.below);
 
@@ -100,7 +99,8 @@ public class TriggeringRuleManagerTests {
         when(this.triggeringRuleRepository.findById("fakeId")).thenReturn(Optional.of(new TrailingStopRule("fakeId",
                 "ETH-FAKE", 12345, TrailingStopRule.pointType.point, TrailingStopRule.directionType.below)));
 
-        when(this.triggeringRuleRepository.save(any(TrailingStopRule.class))).thenAnswer(mock -> mock.getArguments()[0]);
+        when(this.triggeringRuleRepository.save(any(TrailingStopRule.class)))
+                .thenAnswer(mock -> mock.getArguments()[0]);
 
         ruleManager.updateTrailingRule(newRule);
 
@@ -126,10 +126,25 @@ public class TriggeringRuleManagerTests {
     }
 
     @Test
+    @DisplayName("Triggering rule manager should call repository's deleteById with given rule id for deleting")
     public void testDeleteTrailingRule() throws TriggeringRuleNotFoundException {
+        ruleManager = Mockito.spy(ruleManager);
+        TrailingStopRule fakeRule = new TrailingStopRule("fakeId", "NEW-MKT", 12345,
+                TrailingStopRule.pointType.percentage, TrailingStopRule.directionType.above);
+        Mockito.doReturn(fakeRule).when(ruleManager).getTrailingRule(any());
 
         ruleManager.deleteTrailingRule("fakeId");
 
         verify(this.triggeringRuleRepository).deleteById(eq("fakeId"));
+    }
+
+    @Test
+    @DisplayName("TriggeringRuleNotFoundException is supposed to be thrown if no rule with the given ruleId could be found for deleting")
+    public void testDeleteNonExistingTrailingRule() throws TriggeringRuleNotFoundException {
+        ruleManager = Mockito.spy(ruleManager);
+        Mockito.doThrow(new TriggeringRuleNotFoundException("")).when(ruleManager).getTrailingRule(any());
+
+        assertThatThrownBy(() -> ruleManager.deleteTrailingRule("fakeId"))
+                .isInstanceOf(TriggeringRuleNotFoundException.class);
     }
 }
